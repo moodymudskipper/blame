@@ -16,3 +16,5 @@ Imports:
     purrr,
     tibble,
     tidyr
+URL: https://github.com/moodymudskipper/blame
+BugReports: https://github.com/moodymudskipper/blame/issues
