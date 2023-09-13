@@ -132,6 +132,7 @@ review_object_history <- function(
     mode = c("sidebyside", "unified", "context", "auto"),
     context = -1
     ) {
+  mode <- match.arg(mode)
   diff_data <- git_history |>
     dplyr::arrange(time) |>
     dplyr::filter(object == .env$object) |>
