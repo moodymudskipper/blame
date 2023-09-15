@@ -155,6 +155,9 @@ review_object_history <- function(
       file,
       code = strsplit(code, "\n")
     )
+  if (!nrow(diff_data)) {
+    rlang::abort(sprintf("Found no definition for `%s` in the branch history.", object))
+  }
 
   if (ascending) {
     i <- 0
