@@ -7,7 +7,21 @@
 #' @param branch Name of the branch of interest.
 #'
 #' @export
-git_history <- function(repo = ".", branch = "main") {
+git_history <- function(repo = ".", branch = NULL) {
+  if (is.null(branch)) {
+    branch_cmd <- sprintf("git -C '%s' symbolic-ref --short HEAD", repo)
+    branch <- system(branch_cmd, intern = TRUE)
+  } else {
+    branches_cmd <-  sprintf("git -C '%s' for-each-ref --format '%%(refname:short)' refs/heads/", repo)
+    branches <- system(branches_cmd, intern = TRUE)
+    if (!branch %in% branches) {
+      rlang::abort(sprintf(
+        "Branch '%s' not found in repo '%s'",
+        branch,
+        normalizePath(repo, mustWork = FALSE)
+      ))
+    }
+  }
   if (startsWith(repo, "https")) {
     tmp <- tempfile()
     dir.create(tmp)
