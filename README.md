@@ -28,7 +28,7 @@ remotes::install_github("moodymudskipper/blame")
 
 ``` r
 library(blame)
-hist_data <- git_history("https://github.com/moodymudskipper/unglue", "master")
+hist_data <- git_history("https://github.com/moodymudskipper/unglue")
 #> Transferred 705 of 705 objects...done!
 #> Checked out 90 of 90 commits... done!
 #> Created local repo at: /var/folders/mp/qvg2y_jx63bgk_s0xxh2zr140000gp/T//Rtmp903U62/file2531910b7ea
@@ -44,8 +44,8 @@ review_object_history(hist_data, "unglue_data")
   the object level, it takes a couple seconds to run here but for a big
   repo like “<https://github.com/tidyverse/dplyr>” it will take a few
   minutes
-- The default `branch` is “main”, for this example we need to specify
-  “master”.
+- We can provide a branch, by default the main one is used (whatever is
+  its name)
 - `review_object_history()` takes a function name so we can explore its
   history, `ascending = TRUE` by default, set it to `FALSE` to go from
   most to least recent
