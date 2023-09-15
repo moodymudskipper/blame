@@ -174,7 +174,7 @@ review_object_history <- function(
       convert.hz.white.space = FALSE,
       strip.sgr = FALSE,
       trim = FALSE,
-      #context = -1,
+      context = context,
       pager = list(file.path = tmp)
     )
     print(x)
