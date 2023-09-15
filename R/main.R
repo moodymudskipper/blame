@@ -8,6 +8,13 @@
 #'
 #' @export
 git_history <- function(repo = ".", branch = NULL) {
+  if (startsWith(repo, "https")) {
+    tmp <- tempfile()
+    dir.create(tmp)
+    gert::git_clone(repo, tmp)
+    repo <- tmp
+    message(sprintf("Created local repo at: '%s'", tmp))
+  }
   if (is.null(branch)) {
     branch_cmd <- sprintf("git -C '%s' symbolic-ref --short HEAD", repo)
     branch <- system(branch_cmd, intern = TRUE)
@@ -21,13 +28,6 @@ git_history <- function(repo = ".", branch = NULL) {
         normalizePath(repo, mustWork = FALSE)
       ))
     }
-  }
-  if (startsWith(repo, "https")) {
-    tmp <- tempfile()
-    dir.create(tmp)
-    gert::git_clone(repo, tmp)
-    repo <- tmp
-    message(sprintf("Created local repo at: %s", tmp))
   }
 
   #-----------------------------------------------------------------------------
