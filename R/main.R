@@ -133,8 +133,9 @@ git_history <- function(repo = ".", branch = NULL) {
 #' the object was removed/recreated.
 #'
 #' @param git_history output of git_history()
-#'
 #' @param object The name of an object.
+#' @param start A Date (of class "Date" or "character") or commit id where to start browsing, by default either
+#'   the first or last commit depending on `ascending`
 #' @param ascending A boolean.
 #' @param mode,context Passed to `diffobj::diffChr()`, with different defaults.
 #'
@@ -142,6 +143,7 @@ git_history <- function(repo = ".", branch = NULL) {
 review_object_history <- function(
     git_history,
     object,
+    start = NULL,
     ascending = TRUE,
     mode = c("sidebyside", "unified", "context", "auto"),
     context = -1
@@ -150,7 +152,7 @@ review_object_history <- function(
   diff_data <- git_history |>
     dplyr::arrange(time) |>
     dplyr::filter(object == .env$object) |>
-    dplyr::transmute(
+    dplyr::mutate(
       banner = sprintf("%s<br>%s<br>%s<br>%s<br>%s", time, commit, author, description, file),
       file,
       code = strsplit(code, "\n")
@@ -159,16 +161,36 @@ review_object_history <- function(
     rlang::abort(sprintf("Found no definition for `%s` in the branch history.", object))
   }
 
-  if (ascending) {
-    i <- 0
+  if (is.null(start)) {
+    if (ascending) {
+      i <- 1
+    } else {
+      i <- nrow(diff_data) - 1
+    }
   } else {
-    i <- nrow(diff_data)
+    start_is_a_time <-
+      lubridate::is.Date(start) ||
+      lubridate::is.POSIXct(start) ||
+      grepl("[0-9]{4}-[0-9]{2}-[0-9]{2}", start)
+    if (start_is_a_time) {
+      start <- as.Date(start)
+      if (ascending) {
+        commit <- head(diff_data$commit[as.Date(diff_data$time) >= start], 1)
+        if (!length(commit)) rlang::abort(sprintf("No commit found after %s", start))
+      } else {
+        commit <- tail(diff_data$commit[as.Date(diff_data$time) <= start], 1)
+        if (!length(commit)) rlang::abort(sprintf("No commit found before %s", start))
+      }
+      start <- commit
+    }
+    i <- min(match(start, diff_data$commit), nrow(diff_data) - 1)
+    if (is.na(i)) {
+      rlang::abort(sprintf("Can't find commit '%s'", start))
+    }
   }
   tmp <- tempfile(fileext = ".html")
-  press <- ""
+  step <- if (ascending) 1 else -1
   repeat {
-    step <- prod(ifelse(c(press == "", ascending), 1, -1))
-    i <- i + step
     if (i %in% c(0, nrow(diff_data))) break
     break_ <- FALSE
     while(identical(diff_data$code[[i+1]], diff_data$code[[i]]) &&
@@ -196,6 +218,8 @@ review_object_history <- function(
     )
     print(x)
     press <- readline("Press ENTER to continue, or any other key then ENTER to go back: ")
+    step <- if ((press == "") == ascending) 1 else -1
+    i <- i + step
   }
 }
 
